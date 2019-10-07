@@ -1,0 +1,10 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+  
+<suite name="Assignment2" verbose="1" >
+<Parameters browser='chrome' />
+  <test name="Regression1">
+    <classes>
+      <class name="assigment1.FlipKart_Assigment"/>
+    </classes>
+  </test>
+</suite>
