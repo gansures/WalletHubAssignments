@@ -17,5 +17,6 @@ public class Assignment1_PageObj{
 	public static final By DEL_BTN = By.xpath("//button[text()='Delete']");
 	public static final By ACCOUNT_OPTIONS = By.xpath("//div[@id='logoutMenu']/a");
 	public static final By LOGOUT_OPTION =By.xpath("//*[contains(text(),'Log Out')]/../..");
+	public static final By CHAT_OPTION =By.xpath("//a[@aria-label='Options' and @role='button']");
 
 }

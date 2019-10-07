@@ -1,23 +1,15 @@
 package businessComponents;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import com.aventstack.extentreports.ExtentReports;
-import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.Status;
 
 import reusableLibrary.ReusableClass;
@@ -34,6 +26,7 @@ public class Assigment1 extends ReusableClass {
 
 	/**
 	 * @author gansures
+	 * @throws IOException 
 	 * @description This method logs the user into facebook. credentials can be
 	 *              changed from the properties fle
 	 * @createdDate 06-Oct-2019
@@ -44,7 +37,7 @@ public class Assigment1 extends ReusableClass {
 	 *           wait
 	 */
 	@BeforeTest
-	public void loginToFlipkart() throws InterruptedException {
+	public void loginToFlipkart() throws InterruptedException, IOException {
 		enterText(Assignment1_PageObj.USERNAME_TEXTBOX, properties.getProperty("email_id"));
 		enterText(Assignment1_PageObj.PASS_TEXTBOX, properties.getProperty("password1"));
 		click(Assignment1_PageObj.LOGIN_BTN, "Log in button");
@@ -54,7 +47,12 @@ public class Assigment1 extends ReusableClass {
 		 * driver).executeScript("return document.readyState").toString().equals(
 		 * "complete"); } }; wait.until(expectation);
 		 */
-		Thread.sleep(7000);
+		if (isElementDisplayed(Assignment1_PageObj.CHAT_OPTION)) {
+			updateTestLog("Page successfully loaded after login", Status.PASS);
+			addScreenshotToReport();
+		} else
+			updateTestLog("Failed to load after login", Status.FAIL);
+		
 	}
 
 	/**
@@ -91,7 +89,6 @@ public class Assigment1 extends ReusableClass {
 	public void validatePost() throws InterruptedException, IOException {
 		if (isElementDisplayed(Assignment1_PageObj.STORY_OPTIONS)) {
 			updateTestLog("Successfully created a post", Status.PASS);
-			File imagepath = takeScreenshot("./" + "//results//screnshoots");
 			addScreenshotToReport();
 		} else
 			updateTestLog("Failed to create a post", Status.FAIL);

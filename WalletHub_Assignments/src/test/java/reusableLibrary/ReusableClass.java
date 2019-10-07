@@ -8,14 +8,19 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
+import org.openqa.selenium.ElementNotInteractableException;
+import org.openqa.selenium.ElementNotVisibleException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.ie.InternetExplorerDriver;
+import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.aventstack.extentreports.*;
@@ -23,11 +28,7 @@ import com.aventstack.extentreports.reporter.ExtentHtmlReporter;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
 import uimap.Assignment1_PageObj;
-
-/**
- * @author gansures
- *
- */
+import uimap.Assignment2_PageObj;
 
 public class ReusableClass {
 
@@ -36,7 +37,7 @@ public class ReusableClass {
 	protected Properties properties = new Properties();
 	ExtentReports extent;
 	ExtentTest logger;
-
+	Actions action;
 	// More reusable objects can be added in future such as for reporting, database
 	// connection, excel connection and so forth
 
@@ -92,7 +93,7 @@ public class ReusableClass {
 	public void openURL() {
 		driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
 		driver.get(properties.getProperty(properties.getProperty("WebpageURL")));
-		if (driver.getTitle().contains(properties.getProperty("WebpageURL")))
+		if (driver.getTitle().contains(properties.getProperty("WebpageURL")) || properties.getProperty("WebpageURL").contains(driver.getTitle()))
 			updateTestLog(properties.getProperty("WebpageURL") + " page was opened successfully", Status.PASS);
 		else
 			updateTestLog(properties.getProperty("WebpageURL") + " page was not opened", Status.FAIL);
@@ -141,13 +142,23 @@ public class ReusableClass {
 	 * @lastModifiedDate
 	 * @modificationComments
 	 */
-	public void click(By locatorID, String ele) throws InterruptedException {
-		if (isElementDisplayed(locatorID)) {
+	public void click(By locatorID, String ele) throws InterruptedException, ElementNotVisibleException {
+		try{
+			if (isElementDisplayed(locatorID)) {
 			driver.findElement(locatorID).click();
 			updateTestLog("Successfully clicked on " + ele, Status.PASS);
-		} else {
+		} else 
 			updateTestLog("Click action failed on " + ele, Status.FAIL);
 		}
+		catch (TimeoutException e)
+		{
+			updateTestLog("Click action took longer than expected on " + ele, Status.FAIL);
+		}
+		catch (ElementNotInteractableException e)
+		{
+			updateTestLog("Test case code needs revisiting", Status.FAIL);
+		}
+		
 	}
 
 	/**
@@ -269,4 +280,93 @@ public class ReusableClass {
 		extent.flush();
 	}
 
+	/**
+	 * @author gansures
+	 * @description This method hovers the mouse pointer over the locator specified
+	 * @createdDate 06-Oct-2019
+	 * @lastModifiedBy
+	 * @lastModifiedDate
+	 * @modificationComments
+	 */
+	protected void starHoverOver() {
+		action = new Actions(driver);
+		action.moveToElement(driver.findElement(By.xpath("(//*[@height='" + properties.getProperty("height_of_the_star")
+				+ "'])[position()=" + properties.getProperty("star_rating") + "]")),0,0).build().perform();
+	}
+
+	/**
+	 * @author gansures
+	 * @throws IOException 
+	 * @description This method validates the hovering the mouse pointer over the
+	 *              locator specified
+	 * @createdDate 06-Oct-2019
+	 * @lastModifiedBy
+	 * @lastModifiedDate
+	 * @modificationComments
+	 */
+	protected void vaidateStarHoverOver() throws IOException {
+		if (driver.findElement(By.xpath("(//*[@height='"+properties.getProperty("height_of_the_star")+"'])[position()="+properties.getProperty("star_rating")+"]//*[@fill='"+properties.getProperty("hover_over_color")+"']")).isEnabled()) {
+			updateTestLog("The desired color "+ properties.getProperty("hover_over_color")+" was lit up in the stars after mouse over", Status.PASS);
+			addScreenshotToReport();
+		} else
+			updateTestLog("Test Insurance Company page was not opened", Status.FAIL);
+	}
+	
+	/**
+	 * @author gansures
+	 * @throws IOException 
+	 * @description This method validates the hovering the mouse pointer over the
+	 *              locator specified
+	 * @createdDate 06-Oct-2019
+	 * @lastModifiedBy
+	 * @lastModifiedDate
+	 * @modificationComments
+	 */
+	protected void selectValueByText(By locatorID, String dropboxName, String value) throws IOException {
+		Select select = new Select (driver.findElement(locatorID)); 
+		select.selectByValue(value);
+		updateTestLog("The desired color "+ properties.getProperty("hover_over_color")+" was filled into stars after mouse over", Status.PASS);
+			addScreenshotToReport();
+	
+			updateTestLog("Test Insurance Company page was not opened", Status.FAIL);
+	}
+	
+	/**
+	 * @author gansures
+	 * @throws InterruptedException 
+	 * @description This method logs out from wallethub
+	 * @createdDate 06-Oct-2019
+	 * @lastModifiedBy
+	 * @lastModifiedDate
+	 * @modificationComments
+	 */
+	public void logoutWalletHub() throws InterruptedException {
+		String profile = splitstring(properties.getProperty("user_fullname"), " ");
+		click(By.xpath("//a[contains(text(),'"+profile+"')]"), "");
+		click(Assignment2_PageObj.LOGOUT_OPTION,"");
+		if (!isElementDisplayed(By.xpath("//span[contains(text(),'"+profile+"')]")))
+			updateTestLog("Logout was successful", Status.PASS);
+		else
+			updateTestLog("Logout was un-successful", Status.FAIL);
+	}
+	
+	/**
+	 * @author gansures
+	 * @throws InterruptedException 
+	 * @description This method splits the string into two and returns the first part of the split
+	 * @createdDate 06-Oct-2019
+	 * @lastModifiedBy
+	 * @lastModifiedDate
+	 * @modificationComments
+	 */
+	public String splitstring(String inputString, String regex) throws InterruptedException {
+		String value = null;
+		String[] input = inputString.split(regex);
+		for (String str : input)
+		{
+			value = str;
+			break;
+		}
+		return value;
+	}
 }
